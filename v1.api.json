@@ -1,0 +1,2427 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Data API ŘSD",
+    "description": "API pro nahrávání a synchronizaci dat mobilní aplikace Mostní provisoria",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "autentizace",
+      "description": "API, které slouží pro předávání a správu přihlašovacích údajů",
+      "x-resource": "accounts",
+      "x-id": "uid",
+      "x-delta": "users",
+      "x-preserve": false
+    },
+    {
+      "name": "relace",
+      "description": "API, které slouží pro vkladání a mazání uživatelských sezení",
+      "x-resource": "session"
+    },
+    {
+      "name": "uzivatel",
+      "description": "API, které slouží pro vkládání a aktualizaci uživatelských dat",
+      "x-id": "name",
+      "x-resource": "users"
+    },
+    {
+      "name": "skupiny",
+      "description": "API, které slouží pro předávání organizační struktury",
+      "x-resource": "groups"
+    },
+    {
+      "name": "kmen",
+      "description": "API, které slouží pro načtení a ukládání kmenu",
+      "x-resource": "inventaries",
+      "x-id": "most",
+      "x-preserve": false,
+      "x-docs": "data",
+      "x-uniq": "prvek/cipy"
+    },
+    {
+      "name": "vydej",
+      "description": "API, které slouží pro načtení a ukládání výdejů",
+      "x-resource": "expeditures",
+      "x-preserve": false,
+      "x-docs": "data",
+      "x-uniq": "prvek/cipy"
+    },
+    {
+      "name": "prijem",
+      "description": "API, které slouží pro načtení a ukládání příjmů",
+      "x-docs": "data",
+      "x-resource": "incomes"
+    },
+    {
+      "name": "renovace",
+      "description": "API, které slouží pro načtení a ukládání renovací",
+      "x-docs": "data",
+      "x-resource": "renovation"
+    },
+    {
+      "name": "zmeny",
+      "description": "API, které slouží pro synchronizaci."
+    }
+  ],
+  "paths": {
+    "/zmeny/{after}": {
+      "get": {
+        "tags": [
+          "zmeny"
+        ],
+        "summary": "Vrací změny na serveru od uvedeného času.",
+        "description": "Vrací změny na serveru od uvedeného času.",
+        "operationId": "changes",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "path",
+            "description": "Čas poslední evidované změny jako číslo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "403": {
+            "description": "Neautorizovaný uživatel",
+            "content": {}
+          },
+          "default": {
+            "description": "Změny ke kterým došlo od uvedeného času",
+            "content": {}
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "zmeny"
+        ],
+        "summary": "Změní auditní stopu do uvedeného času.",
+        "description": "Změní auditní stopu do uvedeného času.",
+        "operationId": "echo",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "path",
+            "description": "Čas poslední evidované změny jako číslo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Objekt s mapou",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "403": {
+            "description": "Neautorizovaný uživatel",
+            "content": {}
+          },
+          "default": {
+            "description": "Změny ke kterým došlo od uvedeného času",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/autentizace": {
+      "get": {
+        "tags": [
+          "autentizace"
+        ],
+        "summary": "Vrátí seznam platných účtů",
+        "description": "Vrací seznam platných účtů.",
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OvereniDef"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "autentizace"
+        ],
+        "summary": "Založí  účty",
+        "description": "Založí  účty dle unikátních ID zaměstnanců. Pokud zaměstnanec již existoval, dojde k jeho nahrazení.",
+        "operationId": "updateAccounts",
+        "requestBody": {
+          "description": "Informace o účtu",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OvereniDef"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Účet se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/relace": {
+      "get": {
+        "tags": [
+          "relace"
+        ],
+        "summary": "Vrátí uživatelovo sezení",
+        "description": "Vrací uživatelovo sezení.",
+        "operationId": "getSession",
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOdpoved"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "relace"
+        ],
+        "summary": "Založí uživatelovo sezení.",
+        "description": "Založí uživatelovo sezení.",
+        "operationId": "createSession",
+        "requestBody": {
+          "description": "Uživatelovo sezení",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenPozadavek"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOdpoved"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sezení se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/uzivatel/{_id}/": {
+      "get": {
+        "tags": [
+          "uzivatel"
+        ],
+        "summary": "Uživatelovo nastavení podle id",
+        "description": "Vrátí uživatelovo nastavení podle id.",
+        "operationId": "getOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID uživatele",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Uzivatel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Při operaci došlo k chybě",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Uživatel nebyl nalezen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "uzivatel"
+        ],
+        "summary": "Uoží uživatelovo nastavení podle id.",
+        "description": "Uloží uživatelovo nastavení podle id.",
+        "operationId": "putOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID uživatele",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Uživatelovo nastavení",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Uzivatel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Uživatelovo nastavení se nepodařilo uložit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/skupiny": {
+      "get": {
+        "tags": [
+          "skupiny"
+        ],
+        "summary": "Vrátí seznam skupin",
+        "description": "Vrací seznam skupin.",
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkupinaDef"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "skupiny"
+        ],
+        "summary": "Založí skupiny",
+        "description": "Založí skupiny",
+        "operationId": "bulkUpdate",
+        "requestBody": {
+          "description": "Informace o skupině",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkupinaDef"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/okStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Skupiny se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/skupiny/{owner}/": {
+      "get": {
+        "tags": [
+          "skupiny"
+        ],
+        "summary": "Vrátí seznam skupin nadřízeného",
+        "description": "Vrací seznam skupin nadřízeného.",
+        "operationId": "getGroups",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "ID uživatele",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkupinaDef"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Seznam uživatelů není možné vrátit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "skupiny"
+        ],
+        "summary": "Založí seznam skupin nadřízeného",
+        "description": "Založí seznam skupin nadřízeného",
+        "operationId": "addGroups",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "ID uživatele",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Informace o skupině",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkupinaDef"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/okStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Skupiny se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "skupiny"
+        ],
+        "summary": "Smaže seznam skupin nadřízeného",
+        "description": "Smaže seznam skupin nadřízeného",
+        "operationId": "deleteGroups",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "description": "ID uživatele",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Informace o skupině",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkupinaDef"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/okStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Skupiny se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/kmen": {
+      "get": {
+        "tags": [
+          "kmen"
+        ],
+        "summary": "Vrátí kmen",
+        "description": "Vrací kmen.",
+        "operationId": "getAll",
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kmen"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "kmen"
+        ],
+        "summary": "Založí kmen",
+        "description": "Založí kmen",
+        "operationId": "bulkUpdate",
+        "requestBody": {
+          "description": "Kmen",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kmen"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Kmen se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "kmen"
+        ],
+        "summary": "Maže duplicity",
+        "description": "Maže duplicity",
+        "operationId": "delDups",
+        "requestBody": {
+          "description": "Seznam duplicit",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeznamDuplicit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Duplicity se nepodařilo smazat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/most/{_id}": {
+      "put": {
+        "tags": [
+          "kmen"
+        ],
+        "summary": "Aktualizuje stávající most",
+        "description": "Aktualizuje stávající most",
+        "operationId": "uniqOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID mostu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Most",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Most"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Most"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Most se nepodařilo aktualizovat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/vydej": {
+      "post": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Založí seznam výdejů",
+        "description": "Založí seznam výdejů",
+        "operationId": "bulkUpdate",
+        "requestBody": {
+          "description": "Seznam výdejů",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeznamVydeju"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Výdeje se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/vydej/{after}": {
+      "get": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Vrátí seznam výdejů",
+        "description": "Vrací seznam výdejů.",
+        "operationId": "changedAfter",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "path",
+            "description": "Čas poslední evidované změny jako číslo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeznamVydeju"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/vydej/souhrn/{zakazka}": {
+      "get": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Vrátí souhrn výdejů",
+        "description": "Vrací souhrn výdejů.",
+        "operationId": "findWhere",
+        "parameters": [
+          {
+            "name": "zakazka",
+            "in": "path",
+            "description": "Identifikátor zakázky",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeznamVydeju"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/vydej/{_id}": {
+      "post": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Založí nový výdej",
+        "description": "Založí nový výdej",
+        "operationId": "addOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID výdeje",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Výdej",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Vydej"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Výdej se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Aktualizuje stávající výdej",
+        "description": "Aktualizuje stávající výdej",
+        "operationId": "uniqOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID výdeje",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Výdej",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Vydej"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Výdej se nepodařilo aktualizovat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "vydej"
+        ],
+        "summary": "Smaže výdej",
+        "description": "Smaže výdej",
+        "operationId": "delOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID výdeje",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Výdej se nepodařilo smazat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/prijem": {
+      "post": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Založí seznam příjmů",
+        "description": "Založí seznam příjmů",
+        "operationId": "bulkUpdate",
+        "requestBody": {
+          "description": "Seznam příjmů",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeznamPrijmu"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Příjmy se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/prijem/{after}": {
+      "get": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Vrátí seznam příjmů",
+        "description": "Vrací seznam příjmů.",
+        "operationId": "changedAfter",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "path",
+            "description": "Čas poslední evidované změny jako číslo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeznamPrijmu"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/prijem/souhrn/{zakazka}": {
+      "get": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Vrátí souhrn příjmů",
+        "description": "Vrací souhrn příjmů.",
+        "operationId": "findWhere",
+        "parameters": [
+          {
+            "name": "zakazka",
+            "in": "path",
+            "description": "Identifikátor zakázky",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeznamPrijmu"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/prijem/{_id}": {
+      "post": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Založí nový příjem",
+        "description": "Založí nový příjem",
+        "operationId": "addOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID příjmu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "příjem",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/prijem"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Příjem se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Aktualizuje stávající příjem",
+        "description": "Aktualizuje stávající příjem",
+        "operationId": "putOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID příjmu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "příjem",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/prijem"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "příjem se nepodařilo aktualizovat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "prijem"
+        ],
+        "summary": "Smaže příjem",
+        "description": "Smaže příjem",
+        "operationId": "delOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID příjmu",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Příjem se nepodařilo smazat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/renovace": {
+      "post": {
+        "tags": [
+          "renovace"
+        ],
+        "summary": "Založí seznam renovací",
+        "description": "Založí seznam renovací",
+        "operationId": "bulkUpdate",
+        "requestBody": {
+          "description": "Seznam renovací",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeznamRenovaci"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Renovace se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/renovace/{after}": {
+      "get": {
+        "tags": [
+          "renovace"
+        ],
+        "summary": "Vrátí seznam renovací",
+        "description": "Vrací seznam renovací.",
+        "operationId": "changedAfter",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "path",
+            "description": "Čas poslední evidované změny jako číslo",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeznamRenovaci"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    },
+    "/renovace/{_id}": {
+      "post": {
+        "tags": [
+          "renovace"
+        ],
+        "summary": "Založí novou renovaci",
+        "description": "Založí novou renovaci",
+        "operationId": "addOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID renovace",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Renovace",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/renovace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Renovaci se nepodařilo založit",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "renovace"
+        ],
+        "summary": "Aktualizuje stávající renovaci",
+        "description": "Aktualizuje stávající renovaci",
+        "operationId": "putOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID renovace",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Renovace",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/renovace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Renovaci se nepodařilo aktualizovat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "renovace"
+        ],
+        "summary": "Smaže renovaci",
+        "description": "Smaže renovaci",
+        "operationId": "delOne",
+        "parameters": [
+          {
+            "name": "_id",
+            "in": "path",
+            "description": "ID renovace",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Úšpěšná operace",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/OkStr"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Renovaci se nepodařilo smazat",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chyba"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "token": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Chyba": {
+        "required": [
+          "kodChyby",
+          "popisChyby"
+        ],
+        "type": "object",
+        "properties": {
+          "kodChyby": {
+            "minimum": 1,
+            "type": "integer",
+            "description": "ID chyby.",
+            "example": 1
+          },
+          "popisChyby": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string",
+            "description": "Základní informace o chybě, tj. číslo a popis.",
+            "example": "ERR-0001 Vstupní data nejsou validní"
+          },
+          "detailChyby": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Nepovinná položka se detailním popisem chyby; může být anglicky a může obsahovat kus kódu apod.",
+            "items": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        },
+        "description": "Chybové hlášení"
+      },
+      "OkStr": {
+        "type": "string",
+        "description": "OK odpověď",
+        "example": "OK",
+        "enum": [
+          "OK"
+        ]
+      },
+      "TokenPozadavek": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "password": {
+                "type": "string",
+                "format": "password"
+              }
+            },
+            "required": [
+              "email",
+              "password"
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "TokenOdpoved": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string"
+              },
+              "token": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "bio": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "email",
+              "token",
+              "username",
+              "bio",
+              "image"
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "Uzivatel": {
+        "title": "Uzivatel",
+        "required": [
+          "settings"
+        ],
+        "type": "object",
+        "properties": {
+          "bio": {
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/Settings"
+          },
+          "name": {
+            "type": "string"
+          },
+          "supervisor": {
+            "$ref": "#/components/schemas/Supervisor"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "type": "string"
+          },
+          "uid": {
+            "type": "number"
+          },
+          "_id": {
+            "type": "string"
+          },
+          "_rev": {
+            "type": "string"
+          }
+        }
+      },
+      "Supervisor": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Unikátní jméno nadřízeného zaměstance.",
+        "example": "admin"
+      },
+      "Overeni": {
+        "required": [
+          "name",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unikátní ID zaměstance, slouží jako přihlašovací jméno.",
+            "example": "18345678"
+          },
+          "password": {
+            "type": "string",
+            "description": "PIN zaměstance, slouží i jako heslo pro účet.",
+            "example": "3333"
+          },
+          "card": {
+            "type": "string",
+            "description": "Identifikátor zaměstance pro objednávání jídel.",
+            "example": "987654321"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Uživatelské jméno zaměstnance.",
+            "example": "Novák Jan"
+          },
+          "supervisor": {
+            "$ref": "#/components/schemas/Supervisor"
+          }
+        },
+        "description": "Objekt s přihlašovacím údajem"
+      },
+      "OvereniDef": {
+        "required": [
+          "docs"
+        ],
+        "type": "object",
+        "properties": {
+          "docs": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými objektu, obsahující ID zaměstance a PIN.",
+            "items": {
+              "$ref": "#/components/schemas/Overeni"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou autentizačních údajů"
+      },
+      "Relace": {
+        "title": "Relace",
+        "required": [
+          "sessionID"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionID": {
+            "type": "string"
+          },
+          "appVersion": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "description": "Uživatelské sezení"
+      },
+      "RelaceDef": {
+        "required": [
+          "docs"
+        ],
+        "type": "object",
+        "properties": {
+          "docs": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými záznamy sezení.",
+            "items": {
+              "$ref": "#/components/schemas/Relace"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou sezení"
+      },
+      "Skupina": {
+        "required": [
+          "name",
+          "owner",
+          "admins",
+          "members"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Název skupiny.",
+            "example": "Projektová skupina 18345678"
+          },
+          "owner": {
+            "pattern": "\\d{8}",
+            "type": "string",
+            "description": "Unikátní ID nadřízeného zaměstance.",
+            "example": "18345678"
+          },
+          "admins": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými zaměstnanci.",
+            "items": {
+              "pattern": "\\d{8}",
+              "type": "string",
+              "description": "Unikátní ID zaměstance.",
+              "example": "18345678"
+            }
+          },
+          "members": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými zaměstnanci.",
+            "items": {
+              "$ref": "#/components/schemas/Urceni"
+            }
+          }
+        },
+        "description": "Objekt se skupinou"
+      },
+      "SkupinaDef": {
+        "required": [
+          "docs"
+        ],
+        "type": "object",
+        "properties": {
+          "docs": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými objekty, obsahující skupiny.",
+            "items": {
+              "$ref": "#/components/schemas/Skupina"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou skupin"
+      },
+      "Urceni": {
+        "required": [
+          "uid",
+          "bio"
+        ],
+        "type": "object",
+        "properties": {
+          "uid": {
+            "pattern": "\\d{8}",
+            "type": "string",
+            "description": "Unikátní ID zaměstance.",
+            "example": "18345678"
+          },
+          "bio": {
+            "type": "string",
+            "description": "Uživatelské jméno zaměstnance.",
+            "example": "Novák Jan"
+          }
+        },
+        "description": "Objekt s údajem zaměstnance."
+      },
+      "SessionSummary": {
+        "title": "SessionSummary",
+        "required": [
+          "docs"
+        ],
+        "type": "object",
+        "properties": {
+          "docs": {
+            "$ref": "#/components/schemas/SessionSummaryDocs"
+          }
+        }
+      },
+      "SessionSummaryDocs": {
+        "title": "SessionSummaryDay",
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/SessionSummaryDay"
+        }
+      },
+      "SessionSummaryDay": {
+        "title": "SessionSummaryDay",
+        "required": [
+          "count",
+          "users"
+        ],
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionSummaryUser"
+            }
+          }
+        }
+      },
+      "SessionSummaryUser": {
+        "title": "SessionSummaryUser",
+        "required": [
+          "time",
+          "username",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "format": "integer"
+          },
+          "time": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "Settings": {
+        "title": "Settings",
+        "type": "object",
+        "properties": {
+          "calendar": {
+            "type": "string"
+          },
+          "visited": {
+            "$ref": "#/components/schemas/Visited"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Module"
+            }
+          },
+          "nick": {
+            "type": "string"
+          },
+          "gdpr": {
+            "type": "boolean"
+          },
+          "pinChanged": {
+            "type": "integer"
+          },
+          "canteen": {
+            "type": "string"
+          },
+          "calendarNotes": {
+            "type": "object"
+          }
+        }
+      },
+      "Prvek": {
+        "type": "object",
+        "properties": {
+          "nazev": {
+            "type": "string"
+          },
+          "mnoz": {
+            "type": "number"
+          },
+          "hm": {
+            "type": "number"
+          },
+          "kod": {
+            "type": "number"
+          },
+          "cipy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stav": {
+            "type": "string",
+            "enum": [
+              "sklad",
+              "renovace",
+              "nalozen",
+              "vydej"
+            ]
+          }
+        },
+        "required": [
+          "nazev",
+          "hm",
+          "kod"
+        ],
+        "additionalProperties": true
+      },
+      "Doruceni": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "datum": {
+                "type": "string"
+              },
+              "ridic": {
+                "type": "string"
+              },
+              "vuz": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ridic",
+              "vuz"
+            ],
+            "title": "Delivery"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "Duplicita": {
+        "type": "object",
+        "properties": {
+          "klic": {
+            "type": "string"
+          },
+          "most": {
+            "type": "string"
+          },
+          "prvek": {
+            "type": "number"
+          },
+          "cip": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "klic",
+          "most",
+          "prvek",
+          "cip"
+        ]
+      },
+      "SeznamDuplicit": {
+        "required": [
+          "docs"
+        ],
+        "type": "object",
+        "properties": {
+          "docs": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole s jednotlivými objekty, obsahující duplicity.",
+            "items": {
+              "$ref": "#/components/schemas/Duplicita"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou duplicit"
+      },
+      "Most": {
+        "type": "object",
+        "properties": {
+          "most": {
+            "type": "string"
+          },
+          "pohyb": {
+            "type": "string"
+          },
+          "zakazka": {
+            "type": "string"
+          },
+          "cast": {
+            "type": "number"
+          },
+          "datum": {
+            "type": "string"
+          },
+          "stav": {
+            "type": "string",
+            "enum": [
+              "novy",
+              "schvalen",
+              "odeslan",
+              "lokalni"
+            ]
+          },
+          "doruceni": {
+            "$ref": "#/components/schemas/Doruceni"
+          },
+          "prvek": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Prvek"
+            }
+          },
+          "chyby": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Duplicita"
+            }
+          }
+        },
+        "required": [
+          "most"
+        ],
+        "additionalProperties": true
+      },
+      "Kmen": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "uniqueItems": true,
+            "type": "array",
+            "description": "Pole obsahujíci mosty.",
+            "items": {
+              "$ref": "#/components/schemas/Most"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou mostů"
+      },
+      "Vydej": {
+        "type": "object",
+        "properties": {
+          "most": {
+            "type": "string"
+          },
+          "pohyb": {
+            "type": "string"
+          },
+          "zakazka": {
+            "type": "string"
+          },
+          "cast": {
+            "type": "number"
+          },
+          "datum": {
+            "type": "string"
+          },
+          "stav": {
+            "type": "string",
+            "enum": [
+              "novy",
+              "schvalen",
+              "odeslan",
+              "lokalni"
+            ]
+          },
+          "doruceni": {
+            "$ref": "#/components/schemas/Doruceni"
+          },
+          "prvek": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Prvek"
+            }
+          },
+          "chyby": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Duplicita"
+            }
+          }
+        },
+        "required": [
+          "most",
+          "pohyb",
+          "prvek"
+        ],
+        "additionalProperties": true
+      },
+      "SeznamVydeju": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Vydej"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou mostů"
+      },
+      "Prijem": {
+        "type": "object",
+        "properties": {
+          "most": {
+            "type": "string"
+          },
+          "pohyb": {
+            "type": "string"
+          },
+          "zakazka": {
+            "type": "string"
+          },
+          "cast": {
+            "type": "number"
+          },
+          "datum": {
+            "type": "string"
+          },
+          "stav": {
+            "type": "string",
+            "enum": [
+              "novy",
+              "schvalen",
+              "odeslan",
+              "lokalni"
+            ]
+          },
+          "doruceni": {
+            "$ref": "#/components/schemas/Doruceni"
+          },
+          "prvek": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Prvek"
+            }
+          },
+          "chyby": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Duplicita"
+            }
+          }
+        },
+        "required": [
+          "most",
+          "pohyb",
+          "prvek"
+        ],
+        "additionalProperties": true
+      },
+      "SeznamPrijmu": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Prijem"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou mostů"
+      },
+      "Renovace": {
+        "type": "object",
+        "properties": {
+          "most": {
+            "type": "string"
+          },
+          "pohyb": {
+            "type": "string"
+          },
+          "zakazka": {
+            "type": "string"
+          },
+          "cast": {
+            "type": "number"
+          },
+          "datum": {
+            "type": "string"
+          },
+          "stav": {
+            "type": "string",
+            "enum": [
+              "novy",
+              "schvalen",
+              "odeslan",
+              "lokalni"
+            ]
+          },
+          "doruceni": {
+            "$ref": "#/components/schemas/Doruceni"
+          },
+          "prvek": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Prvek"
+            }
+          },
+          "chyby": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Duplicita"
+            }
+          }
+        },
+        "required": [
+          "most",
+          "pohyb",
+          "prvek"
+        ],
+        "additionalProperties": true
+      },
+      "SeznamRenovaci": {
+        "required": [
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Renovace"
+            }
+          }
+        },
+        "description": "Objekt s jednou sadou mostů"
+      }
+    },
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "basic",
+        "description": "HTTP Basic Autentizace - RFC 2617 - http://www.rfc-base.org/rfc-2617.html",
+        "scheme": "basic",
+        "x-resource": "users"
+      },
+      "token": {
+        "type": "apiKey",
+        "description": "An API key is a token that a client provides when making API calls",
+        "name": "Authentication",
+        "in": "header",
+        "x-resource": "users"
+      }
+    }
+  },
+  "x-pronamespace": "rsd"
+}

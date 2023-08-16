@@ -1,0 +1,35 @@
+{
+  "short_name": "Provizoria",
+  "name": "Mostní provizoria",
+  "description": "Mostní provizoria - systém evidence",
+  "lang": "cs",
+  "orientation": "portrait",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/index.html",
+  "scope": "/",
+  "offline_enabled": true,
+  "icons": [
+    {
+      "src": "android-chrome-192x192.png",
+      "type": "image/png",
+      "sizes": "192x193"
+    },
+    {
+      "src": "android-chrome-512x512.png",
+      "type": "image/png",
+      "sizes": "512x513"
+    },
+    {
+      "src": "android-chrome-maskable-192x192.png",
+      "sizes": "192x193",
+      "type": "image/png"
+    },
+    {
+      "src": "android-chrome-maskable-512x512.png",
+      "sizes": "512x513",
+      "type": "image/png"
+    }
+  ]
+}
